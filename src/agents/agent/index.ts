@@ -55,6 +55,18 @@ type InstructionsFunction<TContext> = (
  * Constructor properties for creating an Agent.
  */
 interface AgentProps<TContext = any> {
+  /**
+   * Optional config for OpenAIProvider (apiKey, baseUrl, etc).
+   * If provided, will be used when the agent is used as a tool.
+   */
+  openaiProviderConfig?: {
+    apiKey?: string | null;
+    baseUrl?: string | null;
+    openaiClient?: any;
+    organization?: string | null;
+    project?: string | null;
+    useResponses?: boolean | null;
+  };
   /** The name of the agent */
   name: string;
   /** The instructions for the agent. Will be used as the "system prompt" when this agent is
@@ -166,6 +178,18 @@ export class Agent<TContext> {
    */
   reset_tool_choice: boolean = true;
 
+  /**
+   * Optional config for OpenAIProvider (apiKey, baseUrl, etc).
+   */
+  openaiProviderConfig?: {
+    apiKey?: string | null;
+    baseUrl?: string | null;
+    openaiClient?: any;
+    organization?: string | null;
+    project?: string | null;
+    useResponses?: boolean | null;
+  };
+
   constructor({
     name,
     instructions,
@@ -181,6 +205,7 @@ export class Agent<TContext> {
     hooks,
     tool_use_behavior,
     reset_tool_choice,
+    openaiProviderConfig,
   }: AgentProps<TContext>) {
     this.name = name;
     this.instructions = instructions;
@@ -196,6 +221,7 @@ export class Agent<TContext> {
     this.hooks = hooks;
     this.tool_use_behavior = tool_use_behavior ?? 'run_llm_again';
     this.reset_tool_choice = reset_tool_choice ?? true;
+    this.openaiProviderConfig = openaiProviderConfig;
   }
 
   /**
@@ -287,7 +313,7 @@ export class Agent<TContext> {
         const output = await Runner.run(this, input, {
           context: context.context,
           runConfig: {
-            modelProvider: new OpenAIProvider(),
+            modelProvider: new OpenAIProvider(this.openaiProviderConfig ?? {}),
             tracingDisabled: false,
             traceIncludeSensitiveData: true,
             workflowName: 'Agent tool',

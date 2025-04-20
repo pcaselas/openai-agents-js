@@ -88,13 +88,48 @@ export class RunConfig {
   /**
    * The model provider to use when looking up string model names. Defaults to OpenAI.
    */
-  modelProvider: ModelProvider = new OpenAIProvider({});
+  modelProvider: ModelProvider;
+
+  /**
+   * Optional config for OpenAIProvider (apiKey, baseUrl, etc).
+   */
+  openaiProviderConfig?: {
+    apiKey?: string | null;
+    baseUrl?: string | null;
+    openaiClient?: any;
+    organization?: string | null;
+    project?: string | null;
+    useResponses?: boolean | null;
+  };
 
   /**
    * Configure global model settings. Any non-null values will override the agent-specific model
    * settings.
    */
   modelSettings?: ModelSettings;
+
+  constructor({
+    model,
+    modelProvider,
+    openaiProviderConfig,
+    modelSettings,
+    ...rest
+  }: Partial<RunConfig> & {
+    openaiProviderConfig?: {
+      apiKey?: string | null;
+      baseUrl?: string | null;
+      openaiClient?: any;
+      organization?: string | null;
+      project?: string | null;
+      useResponses?: boolean | null;
+    };
+  } = {}) {
+    this.model = model;
+    this.openaiProviderConfig = openaiProviderConfig;
+    this.modelProvider = modelProvider ?? new OpenAIProvider(openaiProviderConfig ?? {});
+    this.modelSettings = modelSettings;
+    Object.assign(this, rest);
+  }
 
   /**
    * A global input filter to apply to all handoffs. If `Handoff.input_filter` is set, then that
